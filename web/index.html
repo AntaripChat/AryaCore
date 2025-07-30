@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AryaCore Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: rgba(108, 92, 231, 0.1);
+            --secondary: #a29bfe;
+            --dark: #1e1e2e;
+            --darker: #161622;
+            --light: #f8f9fa;
+            --light-gray: #e9ecef;
+            --code-bg: #282a36;
+            --highlight: #00cec9;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background-color: var(--darker);
+            color: var(--light);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(108, 92, 231, 0.3);
+            position: relative;
+        }
+        
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--highlight));
+        }
+        
+        h1 {
+            color: var(--light);
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--highlight));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+        
+        .tagline {
+            color: var(--secondary);
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 1.5rem;
+            line-height: 1.5;
+        }
+        
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            background-color: var(--dark);
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            transition: var(--transition);
+        }
+        
+        .badge:hover {
+            background-color: rgba(108, 92, 231, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .badge i {
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+        
+        section {
+            background-color: var(--dark);
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(108, 92, 231, 0.1);
+            transition: var(--transition);
+        }
+        
+        section:hover {
+            border-color: rgba(108, 92, 231, 0.3);
+            transform: translateY(-3px);
+        }
+        
+        h2 {
+            color: var(--light);
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        h2::before {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+        
+        h3 {
+            color: var(--light);
+            margin: 2rem 0 1rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+            position: relative;
+            padding-left: 1.2rem;
+        }
+        
+        h3::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--secondary);
+        }
+        
+        p {
+            margin-bottom: 1.2rem;
+            color: var(--light-gray);
+            line-height: 1.7;
+        }
+        
+        code {
+            background-color: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: #f8f8f2;
+        }
+        
+        pre {
+            background-color: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--primary);
+            position: relative;
+            box-shadow: inset 0 1px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .code-block {
+            position: relative;
+            margin: 1.5rem 0;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            background-color: rgba(108, 92, 231, 0.2);
+            color: var(--secondary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .copy-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .copy-btn i {
+            font-size: 0.8rem;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.8rem;
+            margin-top: 2rem;
+        }
+        
+        .feature-card {
+            background-color: rgba(108, 92, 231, 0.05);
+            border: 1px solid rgba(108, 92, 231, 0.1);
+            border-radius: var(--border-radius);
+            padding: 1.8rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--highlight));
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--box-shadow);
+            border-color: rgba(108, 92, 231, 0.3);
+            background-color: rgba(108, 92, 231, 0.1);
+        }
+        
+        .feature-card h3 {
+            color: var(--light);
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+            padding-left: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        
+        .feature-card h3::before {
+            display: none;
+        }
+        
+        .feature-card p {
+            color: var(--light-gray);
+            font-size: 0.95rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(108, 92, 231, 0.3);
+            color: var(--secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .social-links a {
+            color: var(--secondary);
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            color: var(--highlight);
+            transform: translateY(-3px);
+        }
+        
+        /* Syntax highlighting */
+        .token.comment,
+        .token.prolog,
+        .token.doctype,
+        .token.cdata {
+            color: #6272a4;
+        }
+        
+        .token.punctuation {
+            color: #f8f8f2;
+        }
+        
+        .token.property,
+        .token.tag,
+        .token.constant,
+        .token.symbol,
+        .token.deleted {
+            color: #ff79c6;
+        }
+        
+        .token.boolean,
+        .token.number {
+            color: #bd93f9;
+        }
+        
+        .token.selector,
+        .token.attr-name,
+        .token.string,
+        .token.char,
+        .token.builtin,
+        .token.inserted {
+            color: #50fa7b;
+        }
+        
+        .token.operator,
+        .token.entity,
+        .token.url,
+        .language-css .token.string,
+        .style .token.string,
+        .token.variable {
+            color: #f8f8f2;
+        }
+        
+        .token.atrule,
+        .token.attr-value,
+        .token.function,
+        .token.class-name {
+            color: #f1fa8c;
+        }
+        
+        .token.keyword {
+            color: #8be9fd;
+        }
+        
+        .token.regex,
+        .token.important {
+            color: #ffb86c;
+        }
+        
+        .token.important,
+        .token.bold {
+            font-weight: bold;
+        }
+        
+        .token.italic {
+            font-style: italic;
+        }
+        
+        .token.entity {
+            cursor: help;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: var(--dark);
+            color: var(--light);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            border: 1px solid var(--primary-light);
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .tagline {
+                font-size: 1.1rem;
+            }
+            
+            section {
+                padding: 1.8rem;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.6rem;
+            }
+            
+            .badge {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        section {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        
+        section:nth-child(2) { animation-delay: 0.1s; }
+        section:nth-child(3) { animation-delay: 0.2s; }
+        section:nth-child(4) { animation-delay: 0.3s; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AryaCore</h1>
+            <p class="tagline">A minimalist, high-performance Node.js framework built for modern web applications with zero dependencies</p>
+            <div class="badges">
+                <span class="badge"><i class="fas fa-bolt"></i> Lightning Fast</span>
+                <span class="badge"><i class="fas fa-feather-alt"></i> Ultra Lightweight</span>
+                <span class="badge"><i class="fas fa-code-branch"></i> Zero Dependencies</span>
+                <span class="badge"><i class="fab fa-node-js"></i> Node.js 18+</span>
+            </div>
+        </header>
+        
+        <section id="installation">
+            <h2><i class="fas fa-download"></i> Installation</h2>
+            <p>Get started with AryaCore by installing it via npm or yarn:</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode('install-code')"><i class="far fa-copy"></i> Copy</button>
+                <pre><code id="install-code">npm install aryacore
+# or
+yarn add aryacore</code></pre>
+            </div>
+        </section>
+        
+        <section id="quick-start">
+            <h2><i class="fas fa-rocket"></i> Quick Start</h2>
+            <p>Create your first AryaCore application in just a few lines of code:</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode('quickstart-code')"><i class="far fa-copy"></i> Copy</button>
+                <pre><code id="quickstart-code">const { createApp } = require('aryacore');
+const app = createApp();
+
+// Simple route
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+// Route with parameters
+app.get('/users/:id', (req, res) => {
+  res.json({ 
+    userId: req.params.id,
+    query: req.query 
+  });
+});
+
+// Start server
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
+});</code></pre>
+            </div>
+        </section>
+        
+        <section id="features">
+            <h2><i class="fas fa-star"></i> Features</h2>
+            <p>AryaCore comes packed with everything you need to build modern web applications without the bloat.</p>
+            <div class="features">
+                <div class="feature-card">
+                    <h3><i class="fas fa-bolt"></i> Blazing Fast</h3>
+                    <p>Built directly on Node.js native http module for maximum performance and minimal overhead.</p>
+                </div>
+                <div class="feature-card">
+                    <h3><i class="fas fa-feather-alt"></i> Lightweight</h3>
+                    <p>Zero dependencies means minimal footprint, faster installs, and no dependency vulnerabilities.</p>
+                </div>
+                <div class="feature-card">
+                    <h3><i class="fas fa-route"></i> Full Routing</h3>
+                    <p>Supports all HTTP methods with route parameters, query strings, and flexible route patterns.</p>
+                </div>
+                <div class="feature-card">
+                    <h3><i class="fas fa-plug"></i> Middleware</h3>
+                    <p>Flexible middleware system with async support for request processing pipelines.</p>
+                </div>
+                <div class="feature-card">
+                    <h3><i class="fas fa-shield-alt"></i> Error Handling</h3>
+                    <p>Built-in centralized error handling with customizable error responses.</p>
+                </div>
+                <div class="feature-card">
+                    <h3><i class="fas fa-code"></i> TypeScript Ready</h3>
+                    <p>Includes TypeScript definitions out of the box for better developer experience.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="examples">
+            <h2><i class="fas fa-code"></i> Examples</h2>
+            <p>Explore common patterns and usage examples to get the most out of AryaCore.</p>
+            
+            <h3>Basic Route</h3>
+            <p>Define simple routes with different HTTP methods:</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode('basic-route')"><i class="far fa-copy"></i> Copy</button>
+                <pre><code id="basic-route">app.get('/about', (req, res) => {
+  res.send('About Page');
+});
+
+app.post('/login', (req, res) => {
+  // Handle login logic
+  res.json({ success: true });
+});
+
+app.put('/users/:id', (req, res) => {
+  // Update user
+  res.send(`User ${req.params.id} updated`);
+});
+
+app.delete('/posts/:id', (req, res) => {
+  // Delete post
+  res.status(204).end();
+});</code></pre>
+            </div>
+            
+            <h3>Middleware</h3>
+            <p>Create and use middleware functions for cross-cutting concerns:</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode('middleware-code')"><i class="far fa-copy"></i> Copy</button>
+                <pre><code id="middleware-code">// Logger middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url} - ${new Date().toISOString()}`);
+  next();
+});
+
+// Auth middleware
+const requireAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || authHeader !== 'Bearer valid-token') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  next();
+};
+
+// Apply middleware to specific routes
+app.get('/dashboard', requireAuth, (req, res) => {
+  res.send('Admin Dashboard');
+});
+
+// Global middleware (applies to all routes)
+app.use(requireAuth);</code></pre>
+            </div>
+            
+            <h3>Error Handling</h3>
+            <p>Centralized error handling for consistent error responses:</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode('error-code')"><i class="far fa-copy"></i> Copy</button>
+                <pre><code id="error-code">// Throwing errors in routes
+app.get('/products/:id', (req, res) => {
+  const product = db.getProduct(req.params.id);
+  
+  if (!product) {
+    throw new Error('Product not found');
+  }
+  
+  res.json(product);
+});
+
+// Custom error handler
+app.onError((err, req, res) => {
+  console.error(err.stack);
+  
+  const statusCode = err.statusCode || 500;
+  const message = statusCode === 500 ? 'Internal Server Error' : err.message;
+  
+  res.status(statusCode).json({
+    error: message,
+    timestamp: new Date().toISOString(),
+    path: req.url
+  });
+});
+
+// Async error example
+app.get('/async-error', async (req, res) => {
+  throw new Error('Async error example');
+});</code></pre>
+            </div>
+        </section>
+        
+        <footer>
+            <div class="social-links">
+                <a href="#" class="tooltip"><i class="fab fa-github"></i><span class="tooltiptext">GitHub</span></a>
+                <a href="#" class="tooltip"><i class="fab fa-twitter"></i><span class="tooltiptext">Twitter</span></a>
+                <a href="#" class="tooltip"><i class="fab fa-discord"></i><span class="tooltiptext">Discord</span></a>
+                <a href="#" class="tooltip"><i class="fas fa-book"></i><span class="tooltiptext">Documentation</span></a>
+            </div>
+            <p>© 2023 AryaCore | MIT License</p>
+            <p>Made with <i class="fas fa-heart" style="color: var(--danger);"></i> by the AryaCore team</p>
+        </footer>
+    </div>
+
+    <script>
+        function copyCode(id) {
+            const code = document.getElementById(id);
+            const range = document.createRange();
+            range.selectNode(code);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            
+            const btn = event.target.closest('.copy-btn');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+            }, 2000);
+        }
+        
+        // Add syntax highlighting (would be better with Prism.js in a real implementation)
+        document.addEventListener('DOMContentLoaded', function() {
+            const codes = document.querySelectorAll('code');
+            codes.forEach(code => {
+                code.innerHTML = code.innerHTML
+                    .replace(/(\/\/.*)/g, '<span class="token comment">$1</span>')
+                    .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="token comment">$1</span>')
+                    .replace(/(\b(require|module\.exports|const|let|var|function|if|else|for|while|return|new|throw|try|catch|finally)\b)/g, '<span class="token keyword">$1</span>')
+                    .replace(/(\b(true|false|null|undefined)\b)/g, '<span class="token constant">$1</span>')
+                    .replace(/(\b\d+\b)/g, '<span class="token number">$1</span>')
+                    .replace(/(['"].*?['"])/g, '<span class="token string">$1</span>')
+                    .replace(/(\{|\}|\[|\]|\(|\)|;|,|\.)/g, '<span class="token punctuation">$1</span>');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "name": "aryacore",
+  "version": "1.2.1",
+  "description": "AryaCore - A lightweight, blazing-fast backend framework like Express/Fastify",
+  "main": "./dist/index.js",
+  "types": "",
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "npm run build",
+    "test": "node test/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "web",
+    "framework",
+    "express",
+    "fastify",
+    "api",
+    "backend",
+    "aryacore"
+  ],
+  "author": "Antarip Chatterjee",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "typescript": "^5.8.3"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}
