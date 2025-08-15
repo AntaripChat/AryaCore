@@ -2,6 +2,16 @@ import http, { IncomingMessage, ServerResponse } from 'http';
 type Handler = (req: AryaCoreRequest, res: AryaCoreResponse) => void | Promise<void>;
 type Middleware = (req: AryaCoreRequest, res: AryaCoreResponse, next: (err?: any) => void) => void;
 type ErrorHandler = (err: any, req: AryaCoreRequest, res: AryaCoreResponse) => void;
+interface CorsOptions {
+    origin?: string | string[] | ((origin: string | undefined) => string | boolean);
+    methods?: string | string[];
+    allowedHeaders?: string | string[];
+    exposedHeaders?: string | string[];
+    credentials?: boolean;
+    maxAge?: number;
+    preflightContinue?: boolean;
+    optionsSuccessStatus?: number;
+}
 interface AryaCoreRequest extends IncomingMessage {
     params?: Record<string, string>;
     query?: Record<string, string>;
@@ -25,6 +35,7 @@ interface AryaCore {
     onError(handler: ErrorHandler): void;
     listen(port: number, callback?: () => void): http.Server;
 }
+export declare function cors(options?: CorsOptions): Middleware;
 export declare function createApp(): AryaCore;
 declare const createAppCJS: typeof createApp;
 export default createAppCJS;

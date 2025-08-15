@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.cors = cors;
 exports.createApp = createApp;
 const http_1 = __importDefault(require("http"));
 const events_1 = require("events");
@@ -46,6 +47,85 @@ class Router {
             keys
         };
     }
+}
+// ====================== CORS Middleware ======================
+function cors(options) {
+    const defaultOptions = {
+        origin: '*',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
+    };
+    const opts = { ...defaultOptions, ...options };
+    return (req, res, next) => {
+        const origin = req.headers.origin;
+        // Handle origin
+        if (opts.origin) {
+            if (typeof opts.origin === 'function') {
+                const result = opts.origin(origin);
+                if (typeof result === 'string') {
+                    res.setHeader('Access-Control-Allow-Origin', result);
+                }
+                else if (result === true) {
+                    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+                }
+            }
+            else if (Array.isArray(opts.origin)) {
+                if (origin && opts.origin.includes(origin)) {
+                    res.setHeader('Access-Control-Allow-Origin', origin);
+                }
+            }
+            else {
+                res.setHeader('Access-Control-Allow-Origin', opts.origin);
+            }
+        }
+        // Handle credentials
+        if (opts.credentials) {
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+        }
+        // Handle preflight requests
+        if (req.method === 'OPTIONS') {
+            // Handle methods
+            if (opts.methods) {
+                const methods = Array.isArray(opts.methods)
+                    ? opts.methods.join(', ')
+                    : opts.methods;
+                res.setHeader('Access-Control-Allow-Methods', methods);
+            }
+            // Handle allowed headers
+            if (opts.allowedHeaders) {
+                const allowedHeaders = Array.isArray(opts.allowedHeaders)
+                    ? opts.allowedHeaders.join(', ')
+                    : opts.allowedHeaders;
+                res.setHeader('Access-Control-Allow-Headers', allowedHeaders);
+            }
+            else if (req.headers['access-control-request-headers']) {
+                res.setHeader('Access-Control-Allow-Headers', req.headers['access-control-request-headers']);
+            }
+            // Handle max age
+            if (opts.maxAge) {
+                res.setHeader('Access-Control-Max-Age', String(opts.maxAge));
+            }
+            // Handle exposed headers
+            if (opts.exposedHeaders) {
+                const exposedHeaders = Array.isArray(opts.exposedHeaders)
+                    ? opts.exposedHeaders.join(', ')
+                    : opts.exposedHeaders;
+                res.setHeader('Access-Control-Expose-Headers', exposedHeaders);
+            }
+            // Handle preflight continuation
+            if (opts.preflightContinue) {
+                next();
+                return;
+            }
+            // End preflight request
+            res.statusCode = opts.optionsSuccessStatus || 204;
+            res.setHeader('Content-Length', '0');
+            res.end();
+            return;
+        }
+        next();
+    };
 }
 class AryaCoreImpl extends events_1.EventEmitter {
     constructor() {
@@ -286,4 +366,5 @@ const createAppCJS = createApp;
 exports.default = createAppCJS;
 module.exports = createAppCJS;
 module.exports.createApp = createApp;
+module.exports.cors = cors; // Export CORS middleware
 module.exports.AryaCore = AryaCoreImpl;

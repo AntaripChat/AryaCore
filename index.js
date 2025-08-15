@@ -1,6 +1,8 @@
 const { createApp } = require('./dist');
 const app = createApp();
 
+
+
 app.get('/api', (req, res) => {
   res.send('Hello from AryaCore!');
 });
