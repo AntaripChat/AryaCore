@@ -486,16 +486,37 @@ class AryaCoreImpl extends events_1.EventEmitter {
 // Helper function to get IP address
 function getIPAddress() {
     const interfaces = os_1.default.networkInterfaces();
+    // Priority order for interfaces
+    const priorityOrder = ['eth0', 'eth1', 'en0', 'en1', 'Wi-Fi', 'Ethernet', 'Local Area Connection'];
+    // Try priority interfaces first
+    for (const ifaceName of priorityOrder) {
+        const iface = interfaces[ifaceName];
+        if (iface) {
+            for (const alias of iface) {
+                if (alias.family === 'IPv4' &&
+                    alias.address !== '127.0.0.1' &&
+                    !alias.internal) {
+                    return alias.address;
+                }
+            }
+        }
+    }
+    // Fallback: any non-internal IPv4 address
     for (const devName in interfaces) {
         const iface = interfaces[devName];
         if (!iface)
             continue;
-        for (let i = 0; i < iface.length; i++) {
-            const alias = iface[i];
+        for (const alias of iface) {
             if (alias.family === 'IPv4' &&
                 alias.address !== '127.0.0.1' &&
                 !alias.internal) {
-                return alias.address;
+                // Skip virtual/hyper-v adapters (common issue)
+                if (!devName.includes('Virtual') &&
+                    !devName.includes('Hyper-V') &&
+                    !devName.includes('vEthernet') &&
+                    !alias.address.startsWith('169.254')) { // Skip APIPA addresses
+                    return alias.address;
+                }
             }
         }
     }

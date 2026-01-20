@@ -1,6 +1,6 @@
 {
   "name": "aryacore",
-  "version": "1.2.3",
+  "version": "1.21.3",
   "description": "AryaCore - A lightweight, blazing-fast backend framework like Express/Fastify",
   "main": "./dist/index.js",
   "types": "",
