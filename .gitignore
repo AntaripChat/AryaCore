@@ -1,7 +1,23 @@
-node_modules
-./test
-./web
+# Dependencies
+node_modules/
+
+# Personal/development files (don't commit)
+web/
 nest.ts
 next0.1.ts
 note.txt
 old.txt
+
+# Build output
+dist/
+*.js
+*.js.map
+*.d.ts
+!dist/index.js
+!dist/index.d.ts
+
+# Test coverage
+coverage/
+
+# Environment
+.env
