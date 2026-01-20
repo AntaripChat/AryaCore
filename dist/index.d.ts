@@ -12,10 +12,35 @@ interface CorsOptions {
     preflightContinue?: boolean;
     optionsSuccessStatus?: number;
 }
+interface RateLimitOptions {
+    windowMs?: number;
+    max?: number;
+    message?: string;
+    statusCode?: number;
+    skipSuccessfulRequests?: boolean;
+    skipFailedRequests?: boolean;
+    keyGenerator?: (req: AryaCoreRequest) => string;
+    skip?: (req: AryaCoreRequest) => boolean;
+    onLimitReached?: (req: AryaCoreRequest) => void;
+    store?: RateLimitStore;
+}
+interface RateLimitInfo {
+    totalHits: number;
+    resetTime: Date;
+    remainingHits: number;
+}
+interface RateLimitStore {
+    incr(key: string, windowMs: number, max: number): Promise<RateLimitInfo>;
+    decrement(key: string): Promise<void>;
+    resetKey(key: string): Promise<void>;
+    resetAll(): Promise<void>;
+}
 interface AryaCoreRequest extends IncomingMessage {
     params?: Record<string, string>;
     query?: Record<string, string>;
     body?: any;
+    ip?: string;
+    rateLimit?: RateLimitInfo;
 }
 interface AryaCoreResponse extends ServerResponse {
     send: (body: any) => AryaCoreResponse;
@@ -35,6 +60,7 @@ interface AryaCore {
     onError(handler: ErrorHandler): void;
     listen(port: number, callback?: () => void): http.Server;
 }
+export declare function rateLimit(options?: RateLimitOptions): Middleware;
 export declare function cors(options?: CorsOptions): Middleware;
 export declare function createApp(): AryaCore;
 declare const createAppCJS: typeof createApp;

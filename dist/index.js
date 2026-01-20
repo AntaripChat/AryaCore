@@ -3,50 +3,148 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.rateLimit = rateLimit;
 exports.cors = cors;
 exports.createApp = createApp;
 const http_1 = __importDefault(require("http"));
 const events_1 = require("events");
 const url_1 = require("url");
 const os_1 = __importDefault(require("os"));
-class Router {
+// ====================== In-Memory Store for Rate Limiting ======================
+class MemoryStore {
     constructor() {
-        this.routes = [];
+        this.hits = new Map();
+        this.resetTimers = new Map();
     }
-    addRoute(method, path, handler) {
-        const { regex, keys } = this.compilePath(path);
-        this.routes.push({ method, path, regex, keys, handler });
-    }
-    match(req) {
-        const method = req.method || 'GET';
-        const url = req.url?.split('?')[0] || '/';
-        for (const route of this.routes) {
-            if (route.method !== method)
-                continue;
-            const match = url.match(route.regex);
-            if (!match)
-                continue;
-            const params = {};
-            for (let i = 0; i < route.keys.length; i++) {
-                params[route.keys[i]] = match[i + 1];
+    async incr(key, windowMs, max) {
+        const now = Date.now();
+        let entry = this.hits.get(key);
+        if (!entry || now > entry.resetTime) {
+            // Clear existing timer
+            const existingTimer = this.resetTimers.get(key);
+            if (existingTimer) {
+                clearTimeout(existingTimer);
             }
-            return { handler: route.handler, params };
+            // Create new entry
+            entry = {
+                count: 0,
+                resetTime: now + windowMs
+            };
+            // Set timer to reset this key
+            const timer = setTimeout(() => {
+                this.hits.delete(key);
+                this.resetTimers.delete(key);
+            }, windowMs);
+            this.resetTimers.set(key, timer);
+            this.hits.set(key, entry);
         }
-        return null;
-    }
-    compilePath(path) {
-        const keys = [];
-        const pattern = path
-            .replace(/\//g, '\\/')
-            .replace(/:(\w+)/g, (_, key) => {
-            keys.push(key);
-            return '([^\\/]+)';
-        });
+        entry.count++;
         return {
-            regex: new RegExp(`^${pattern}$`),
-            keys
+            totalHits: entry.count,
+            resetTime: new Date(entry.resetTime),
+            remainingHits: Math.max(0, max - entry.count)
         };
     }
+    async decrement(key) {
+        const entry = this.hits.get(key);
+        if (entry && entry.count > 0) {
+            entry.count--;
+        }
+    }
+    async resetKey(key) {
+        this.hits.delete(key);
+        const timer = this.resetTimers.get(key);
+        if (timer) {
+            clearTimeout(timer);
+            this.resetTimers.delete(key);
+        }
+    }
+    async resetAll() {
+        for (const timer of this.resetTimers.values()) {
+            clearTimeout(timer);
+        }
+        this.hits.clear();
+        this.resetTimers.clear();
+    }
+}
+// ====================== Rate Limiting Middleware ======================
+function rateLimit(options) {
+    const opts = {
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 100,
+        message: 'Too many requests, please try again later.',
+        statusCode: 429,
+        skipSuccessfulRequests: false,
+        skipFailedRequests: false,
+        store: new MemoryStore(),
+        keyGenerator: (req) => {
+            // Get IP address from request
+            let ip = req.ip;
+            if (!ip) {
+                const forwarded = req.headers['x-forwarded-for'];
+                ip = Array.isArray(forwarded)
+                    ? forwarded[0]
+                    : (forwarded || req.socket?.remoteAddress || 'unknown');
+            }
+            return ip;
+        },
+        ...options
+    };
+    return async (req, res, next) => {
+        try {
+            // Check if should skip rate limiting
+            if (opts.skip && opts.skip(req)) {
+                return next();
+            }
+            // Generate key for this request
+            const key = opts.keyGenerator(req);
+            // Increment counter
+            const rateLimitInfo = await opts.store.incr(key, opts.windowMs, opts.max);
+            req.rateLimit = rateLimitInfo;
+            // Set rate limit headers
+            res.setHeader('X-RateLimit-Limit', opts.max.toString());
+            res.setHeader('X-RateLimit-Remaining', Math.max(0, opts.max - rateLimitInfo.totalHits).toString());
+            res.setHeader('X-RateLimit-Reset', Math.ceil(rateLimitInfo.resetTime.getTime() / 1000).toString());
+            // Check if rate limit exceeded
+            if (rateLimitInfo.totalHits > opts.max) {
+                // Call limit reached callback if provided
+                if (opts.onLimitReached) {
+                    opts.onLimitReached(req);
+                }
+                // Set Retry-After header
+                const retryAfter = Math.ceil((rateLimitInfo.resetTime.getTime() - Date.now()) / 1000);
+                if (retryAfter > 0) {
+                    res.setHeader('Retry-After', retryAfter.toString());
+                }
+                return res.status(opts.statusCode).send(opts.message);
+            }
+            // Store reference to original end method
+            const originalEnd = res.end.bind(res);
+            // Override end method to check response status
+            res.end = function (...args) {
+                // Call original end method
+                const result = originalEnd(...args);
+                // Handle successful/failed request counting
+                if (opts.skipSuccessfulRequests || opts.skipFailedRequests) {
+                    const status = res.statusCode;
+                    const isSuccessful = status < 400;
+                    const isFailed = status >= 400;
+                    if ((opts.skipSuccessfulRequests && isSuccessful) ||
+                        (opts.skipFailedRequests && isFailed)) {
+                        // Decrement counter since we shouldn't count this request
+                        opts.store.decrement(key).catch(console.error);
+                    }
+                }
+                return result;
+            };
+            next();
+        }
+        catch (error) {
+            console.error('Rate limit error:', error);
+            // On store error, allow the request
+            next();
+        }
+    };
 }
 // ====================== CORS Middleware ======================
 function cors(options) {
@@ -127,6 +225,47 @@ function cors(options) {
         next();
     };
 }
+// ====================== Router Implementation ======================
+class Router {
+    constructor() {
+        this.routes = [];
+    }
+    addRoute(method, path, handler) {
+        const { regex, keys } = this.compilePath(path);
+        this.routes.push({ method, path, regex, keys, handler });
+    }
+    match(req) {
+        const method = req.method || 'GET';
+        const url = req.url?.split('?')[0] || '/';
+        for (const route of this.routes) {
+            if (route.method !== method)
+                continue;
+            const match = url.match(route.regex);
+            if (!match)
+                continue;
+            const params = {};
+            for (let i = 0; i < route.keys.length; i++) {
+                params[route.keys[i]] = match[i + 1];
+            }
+            return { handler: route.handler, params };
+        }
+        return null;
+    }
+    compilePath(path) {
+        const keys = [];
+        const pattern = path
+            .replace(/\//g, '\\/')
+            .replace(/:(\w+)/g, (_, key) => {
+            keys.push(key);
+            return '([^\\/]+)';
+        });
+        return {
+            regex: new RegExp(`^${pattern}$`),
+            keys
+        };
+    }
+}
+// ====================== Main AryaCore Implementation ======================
 class AryaCoreImpl extends events_1.EventEmitter {
     constructor() {
         super();
@@ -227,7 +366,7 @@ class AryaCoreImpl extends events_1.EventEmitter {
                 return resolve();
             }
             let body = '';
-            req.on('data', chunk => {
+            req.on('data', (chunk) => {
                 body += chunk.toString();
             });
             req.on('end', () => {
@@ -256,6 +395,11 @@ class AryaCoreImpl extends events_1.EventEmitter {
     }
     async processRequest(req, res) {
         try {
+            // Store IP address in request object for rate limiting
+            const forwarded = req.headers['x-forwarded-for'];
+            req.ip = Array.isArray(forwarded)
+                ? forwarded[0]
+                : (forwarded || req.socket?.remoteAddress || 'unknown');
             // Parse query parameters
             req.query = this.parseQuery(req.url || '/');
             // Parse request body for POST, PUT, PATCH requests
@@ -364,7 +508,12 @@ function createApp() {
 // CommonJS Export
 const createAppCJS = createApp;
 exports.default = createAppCJS;
-module.exports = createAppCJS;
-module.exports.createApp = createApp;
-module.exports.cors = cors; // Export CORS middleware
-module.exports.AryaCore = AryaCoreImpl;
+// For CommonJS environment
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = createAppCJS;
+    module.exports.createApp = createApp;
+    module.exports.cors = cors;
+    module.exports.rateLimit = rateLimit;
+    module.exports.AryaCore = AryaCoreImpl;
+    module.exports.MemoryStore = MemoryStore;
+}
