@@ -1,1 +1,7 @@
 node_modules
+./test
+./web
+nest.ts
+next0.1.ts
+note.txt
+old.txt
