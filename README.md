@@ -1,6 +1,3 @@
-I'll add all the documentation and usage examples to your project. Let me create a proper README.md file:
-
-```markdown
 # AryaCore
 
 **AryaCore** is a lightweight, high-performance Node.js web framework built on top of the native `http` module. Inspired by Express and Fastify, it provides essential web framework features with minimal overhead.
